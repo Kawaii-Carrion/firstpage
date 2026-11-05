@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ru" class="scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>БЛОК·ФАЙЛ — Часть 1</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: { extend: { fontFamily: { sans: ['Inter','system-ui','sans-serif'], mono: ['JetBrains Mono','monospace'] }, colors: { brand: '#2563eb' } } }
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  .no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}
+  @keyframes marquee{to{transform:translateX(-50%)}}.animate-marquee{animation:marquee 22s linear infinite;width:max-content}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .tab.is-on{background:#fff;color:#111827;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .tab-panel{display:none}.tab-panel.is-on{display:block;animation:fadeUp .3s ease}
+  .fbtn.on{background:#111827;color:#fff;border-color:#111827}
+  .toc-a.on{background:#111827;border-color:#111827;color:#fff}.toc-a.on .toc-num{color:#a5b4fc}
+  .rv{opacity:0;transform:translateY(20px);transition:opacity .6s cubic-bezier(.2,.7,.2,1),transform .6s cubic-bezier(.2,.7,.2,1)}
+  .rv.in{opacity:1;transform:none}
+  @media(prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body class="bg-white text-gray-900 font-sans antialiased selection:bg-brand selection:text-white">
+<a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-brand text-white px-4 py-2 z-[100] rounded">Перейти к содержимому</a>
+
+<!-- ТИКЕР -->
+<div class="bg-gray-900 text-white text-xs font-mono uppercase tracking-widest overflow-hidden border-b border-gray-800" aria-hidden="true">
+  <div class="flex whitespace-nowrap animate-marquee">
+    <div class="flex items-center gap-8 px-4 py-2.5"><span>Фреймворк демо 3.0</span><span class="text-brand">✦</span><span>47 блоков</span><span class="text-brand">✦</span><span>Tailwind CSS</span><span class="text-brand">✦</span><span>Часть 1 из 3</span><span class="text-brand">✦</span></div>
+    <div class="flex items-center gap-8 px-4 py-2.5"><span>Фреймворк демо 3.0</span><span class="text-brand">✦</span><span>47 блоков</span><span class="text-brand">✦</span><span>Tailwind CSS</span><span class="text-brand">✦</span><span>Часть 1 из 3</span><span class="text-brand">✦</span></div>
+  </div>
+</div>
+
+<!-- ШАПКА -->
+<header id="hdr" class="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-gray-200 transition-shadow">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+    <a href="index.html" class="flex items-center gap-2.5 font-bold text-lg tracking-tight">
+      <span class="w-8 h-8 bg-gray-900 text-white grid place-items-center text-sm font-mono rounded">БФ</span>
+      <span class="hidden sm:block">Название сайта</span>
+    </a>
+    <nav class="hidden lg:flex items-center gap-1 text-sm font-medium text-gray-600">
+      <a href="index.html" class="px-3 py-2 text-gray-900 bg-gray-100 rounded-md font-semibold">Часть 1</a>
+      <a href="page2.html" class="px-3 py-2 hover:text-gray-900 hover:bg-gray-50 rounded-md transition">Часть 2</a>
+      <a href="page3.html" class="px-3 py-2 hover:text-gray-900 hover:bg-gray-50 rounded-md transition">Часть 3</a>
+    </nav>
+    <div class="flex items-center gap-3">
+      <button type="button" data-open="#modal-cta" class="hidden sm:inline-flex bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-800 transition">Целевое действие</button>
+      <button type="button" id="burger" class="lg:hidden w-10 h-10 grid place-items-center rounded-lg hover:bg-gray-100 transition" aria-label="Меню" aria-expanded="false">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<nav id="mnav" class="fixed inset-0 top-16 z-40 bg-white transform translate-x-full transition-transform duration-300 lg:hidden overflow-y-auto p-6">
+  <div class="flex flex-col gap-2 text-lg font-medium">
+    <a href="index.html" class="py-3 border-b border-gray-100 mob-link font-bold text-brand">Часть 1: Hero, Навигация, Поиск, Формы</a>
+    <a href="page2.html" class="py-3 border-b border-gray-100 mob-link">Часть 2: Контент, Медиа, Отзывы, Цены</a>
+    <a href="page3.html" class="py-3 border-b border-gray-100 mob-link">Часть 3: Информация, Интерактив, CTA</a>
+    <button type="button" data-open="#modal-cta" class="mt-6 w-full bg-gray-900 text-white py-3 rounded-lg font-medium mob-link">Целевое действие</button>
+  </div>
+</nav>
+
+<main id="main">
+<aside class="sticky top-16 z-30 bg-white/95 backdrop-blur border-b border-gray-200">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 flex items-center gap-3 py-3">
+    <input id="tocQ" type="search" placeholder="Поиск…" class="flex-none w-32 sm:w-44 text-sm border border-gray-200 rounded-full px-3.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition" aria-label="Поиск по разделам">
+    <nav id="tocNav" class="flex gap-2 overflow-x-auto no-scrollbar">
+      <a href="#s-hero" class="toc-a flex-none inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-gray-200 text-sm text-gray-600 hover:border-gray-400 hover:text-gray-900 transition whitespace-nowrap"><span class="toc-num font-mono text-xs text-gray-400">01</span>Первый экран</a>
+      <a href="#s-nav" class="toc-a flex-none inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-gray-200 text-sm text-gray-600 hover:border-gray-400 hover:text-gray-900 transition whitespace-nowrap"><span class="toc-num font-mono text-xs text-gray-400">02</span>Навигация</a>
+      <a href="#s-search" class="toc-a flex-none inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-gray-200 text-sm text-gray-600 hover:border-gray-400 hover:text-gray-900 transition whitespace-nowrap"><span class="toc-num font-mono text-xs text-gray-400">03</span>Поиск и каталог</a>
+      <a href="#s-forms" class="toc-a flex-none inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-gray-200 text-sm text-gray-600 hover:border-gray-400 hover:text-gray-900 transition whitespace-nowrap"><span class="toc-num font-mono text-xs text-gray-400">04</span>Формы и UI</a>
+    </nav>
+  </div>
+</aside>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 space-y-24 py-12 pb-24">
+
+<!-- ================= 01. HERO ================= -->
+<section id="s-hero" data-sec>
+  <div class="grid lg:grid-cols-2 gap-12 items-center">
+    <div class="rv">
+      <span class="inline-block text-xs font-mono uppercase tracking-wider text-brand bg-blue-50 px-3 py-1 rounded-full mb-6">Метка / категория</span>
+      <h1 id="scr" data-text="Заголовок первого экрана" class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1] mb-6">Заголовок первого экрана</h1>
+      <p class="text-lg text-gray-500 max-w-lg mb-8 leading-relaxed">Подзаголовок / описание. 1–2 предложения о том, что предлагает сайт. Здесь дизайнер видит максимальную длину текста.</p>
+      <div class="flex flex-wrap gap-4 mb-12">
+        <a href="#s-search" class="bg-gray-900 text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-800 transition">Главная кнопка →</a>
+        <a href="page3.html#s-cta" class="border border-gray-200 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition">Второстепенная</a>
+      </div>
+      <div class="flex divide-x divide-gray-200 border border-gray-200 rounded-xl w-fit">
+        <div class="px-6 py-4"><div class="text-2xl font-bold text-brand" data-count="100" data-suffix="+">0</div><div class="text-xs font-mono text-gray-400 uppercase mt-1">Параметр 1</div></div>
+        <div class="px-6 py-4"><div class="text-2xl font-bold text-brand" data-count="50" data-suffix="+">0</div><div class="text-xs font-mono text-gray-400 uppercase mt-1">Параметр 2</div></div>
+        <div class="px-6 py-4"><div class="text-2xl font-bold text-brand">24/7</div><div class="text-xs font-mono text-gray-400 uppercase mt-1">Параметр 3</div></div>
+      </div>
+    </div>
+    <div class="rv relative">
+      <div class="aspect-[4/3] rounded-2xl overflow-hidden border border-gray-200 bg-gray-50 relative">
+        <img src="https://picsum.photos/seed/framework-hero/1200/900" alt="Иллюстрация" class="w-full h-full object-cover" loading="lazy">
+        <div class="absolute bottom-0 inset-x-0 bg-white/90 backdrop-blur border-t border-gray-200 px-4 py-3 flex justify-between text-xs font-mono text-gray-500"><span>Место под изображение</span><span>4:3 · 1200×900</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 02. НАВИГАЦИЯ ================= -->
+<section id="s-nav" data-sec class="space-y-12">
+  <div class="rv"><p class="text-xs font-mono text-brand uppercase tracking-widest mb-2">Блоки 03–06</p><h2 class="text-3xl font-bold tracking-tight mb-2">Навигация и структура</h2><p class="text-gray-500 max-w-2xl">Хлебные крошки, табы, пагинация и степпер.</p></div>
+
+  <div class="rv">
+    <span class="text-xs font-mono text-gray-400 mb-3 block">03 · Хлебные крошки</span>
+    <nav class="flex items-center gap-2 text-sm text-gray-500 font-medium flex-wrap" aria-label="Хлебные крошки">
+      <a href="#s-search" class="hover:text-brand transition">Библиотека</a>
+      <svg class="w-3 h-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      <a href="#s-nav" class="hover:text-brand transition">Навигация</a>
+      <svg class="w-3 h-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      <span class="text-gray-900">Хлебные крошки</span>
+    </nav>
+  </div>
+
+  <div class="rv">
+    <span class="text-xs font-mono text-gray-400 mb-3 block">04 · Табы</span>
+    <div class="border border-gray-200 rounded-xl p-6" data-tabs>
+      <div class="flex gap-1 border-b border-gray-200 pb-4 mb-6 overflow-x-auto no-scrollbar" role="tablist">
+        <button type="button" class="tab is-on whitespace-nowrap px-4 py-2 text-sm font-medium rounded-lg transition" data-tab="t1">Описание</button>
+        <button type="button" class="tab whitespace-nowrap px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-900 rounded-lg transition" data-tab="t2">Характеристики</button>
+        <button type="button" class="tab whitespace-nowrap px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-900 rounded-lg transition" data-tab="t3">Отзывы · 12</button>
+      </div>
+      <div class="tab-panel is-on" data-panel="t1"><p class="text-gray-600 max-w-xl leading-relaxed">Вкладка позволяет компактно упаковать несколько смысловых слоёв в одну зону.</p></div>
+      <div class="tab-panel" data-panel="t2"><p class="text-gray-600">Формат: горизонтальная панель. Состояния: активен / наведение / фокус.</p></div>
+      <div class="tab-panel" data-panel="t3"><p class="text-gray-600">«Табы — самый честный способ показать всё и не перегрузить.» — оценка 4.8 из 5.</p></div>
+    </div>
+  </div>
+
+  <div class="rv">
+    <span class="text-xs font-mono text-gray-400 mb-3 block">05 · Пагинация</span>
+    <div class="flex items-center gap-1 flex-wrap">
+      <button type="button" class="w-10 h-10 grid place-items-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition" aria-label="Назад">←</button>
+      <button type="button" class="w-10 h-10 grid place-items-center rounded-lg bg-gray-900 text-white font-medium text-sm">1</button>
+      <button type="button" class="w-10 h-10 grid place-items-center rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 font-medium text-sm transition">2</button>
+      <button type="button" class="w-10 h-10 grid place-items-center rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 font-medium text-sm transition">3</button>
+      <span class="w-10 h-10 grid place-items-center text-gray-400">…</span>
+      <button type="button" class="w-10 h-10 grid place-items-center rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 font-medium text-sm transition">12</button>
+      <button type="button" class="w-10 h-10 grid place-items-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition" aria-label="Вперёд">→</button>
+    </div>
+  </div>
+
+  <div class="rv">
+    <span class="text-xs font-mono text-gray-400 mb-3 block">06 · Степпер процесса</span>
+    <div class="border border-gray-200 rounded-xl p-6">
+      <ol class="hidden sm:flex items-start w-full">
+        <li class="flex-1 relative text-center px-2"><div class="absolute top-3.5 left-1/2 w-full h-0.5 bg-brand"></div><div class="relative w-7 h-7 mx-auto rounded-full bg-brand text-white grid place-items-center text-xs font-bold">✓</div><div class="mt-3 text-sm font-semibold">Заявка</div><div class="text-xs text-gray-400 mt-0.5">Заполнена 03.11</div></li>
+        <li class="flex-1 relative text-center px-2"><div class="absolute top-3.5 left-1/2 w-full h-0.5 bg-gray-200"></div><div class="relative w-7 h-7 mx-auto rounded-full bg-brand text-white grid place-items-center text-xs font-bold">✓</div><div class="mt-3 text-sm font-semibold">Макет</div><div class="text-xs text-gray-400 mt-0.5">Согласован 04.11</div></li>
+        <li class="flex-1 relative text-center px-2"><div class="absolute top-3.5 left-1/2 w-full h-0.5 bg-gray-200"></div><div class="relative w-7 h-7 mx-auto rounded-full border-2 border-brand bg-white grid place-items-center text-xs font-bold text-brand">3</div><div class="mt-3 text-sm font-semibold">Вёрстка</div><div class="text-xs text-gray-400 mt-0.5">В работе сейчас</div></li>
+        <li class="flex-1 relative text-center px-2"><div class="relative w-7 h-7 mx-auto rounded-full border-2 border-gray-200 bg-white grid place-items-center text-xs font-bold text-gray-400">4</div><div class="mt-3 text-sm font-semibold text-gray-400">Запуск</div><div class="text-xs text-gray-400 mt-0.5">Ожидается</div></li>
+      </ol>
+      <ol class="sm:hidden">
+        <li class="relative pl-12 pb-8"><div class="absolute left-3.5 top-8 bottom-0 w-0.5 bg-brand"></div><div class="absolute left-0 top-0 w-7 h-7 rounded-full bg-brand text-white grid place-items-center text-xs font-bold">✓</div><div class="text-sm font-semibold">Заявка</div><div class="text-xs text-gray-400 mt-0.5">Заполнена 03.11</div></li>
+        <li class="relative pl-12 pb-8"><div class="absolute left-3.5 top-8 bottom-0 w-0.5 bg-gray-200"></div><div class="absolute left-0 top-0 w-7 h-7 rounded-full bg-brand text-white grid place-items-center text-xs font-bold">✓</div><div class="text-sm font-semibold">Макет</div><div class="text-xs text-gray-400 mt-0.5">Согласован 04.11</div></li>
+        <li class="relative pl-12 pb-8"><div class="absolute left-3.5 top-8 bottom-0 w-0.5 bg-gray-200"></div><div class="absolute left-0 top-0 w-7 h-7 rounded-full border-2 border-brand bg-white grid place-items-center text-xs font-bold text-brand">3</div><div class="text-sm font-semibold">Вёрстка</div><div class="text-xs text-gray-400 mt-0.5">В работе сейчас</div></li>
+        <li class="relative pl-12"><div class="absolute left-0 top-0 w-7 h-7 rounded-full border-2 border-gray-200 bg-white grid place-items-center text-xs font-bold text-gray-400">4</div><div class="text-sm font-semibold text-gray-400">Запуск</div><div class="text-xs text-gray-400 mt-0.5">Ожидается</div></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 03. ПОИСК И КАТАЛОГ ================= -->
+<section id="s-search" data-sec class="space-y-12">
+  <div class="rv"><p class="text-xs font-mono text-brand uppercase tracking-widest mb-2">Блоки 07–09</p><h2 class="text-3xl font-bold tracking-tight mb-2">Поиск, фильтры, каталог</h2><p class="text-gray-500 max-w-2xl">Живой поиск с подсказками, фильтры-чипы, сортировка.</p></div>
+
+  <div class="rv relative">
+    <span class="text-xs font-mono text-gray-400 mb-3 block">07 · Умный поиск</span>
+    <div class="flex border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-brand/20 focus-within:border-brand transition bg-white">
+      <input id="demoQ" type="search" placeholder="Например: таймлайн, тарифы, галерея…" class="flex-1 px-5 py-3.5 text-sm focus:outline-none bg-transparent min-w-0">
+      <button type="button" id="demoGo" class="px-6 bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition">Найти</button>
+    </div>
+    <div id="sugBox" hidden class="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-20 max-h-64 overflow-y-auto"></div>
+  </div>
+
+  <div class="rv">
+    <span class="text-xs font-mono text-gray-400 mb-3 block">08–09 · Фильтры + карточки</span>
+    <div id="fbar" class="flex flex-wrap items-center gap-3 mb-6">
+      <button type="button" class="fbtn on px-4 py-2 text-xs font-medium rounded-full border border-gray-200 transition" data-f="all">Все</button>
+      <button type="button" class="fbtn px-4 py-2 text-xs font-medium rounded-full border border-gray-200 text-gray-600 hover:border-gray-400 transition" data-f="articles">Статьи</button>
+      <button type="button" class="fbtn px-4 py-2 text-xs font-medium rounded-full border border-gray-200 text-gray-600 hover:border-gray-400 transition" data-f="service">Сервисы</button>
+      <button type="button" class="fbtn px-4 py-2 text-xs font-medium rounded-full border border-gray-200 text-gray-600 hover:border-gray-400 transition" data-f="data">Данные</button>
+      <span class="ml-auto text-xs font-mono text-gray-400">Найдено: <b id="cnt" class="text-gray-900">9</b></span>
+      <select id="sortSel" class="text-xs font-medium border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand/20 bg-white" aria-label="Сортировка"><option value="pop">По популярности</option><option value="az">Название А–Я</option><option value="za">Название Я–А</option></select>
+    </div>
+    <div id="catGrid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <article class="card group border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow duration-300 bg-white" data-cat="articles" data-pop="86" data-title="Гид по типографике"><div class="aspect-video overflow-hidden bg-gray-100 relative"><img src="https://picsum.photos/seed/card-typography/640/400" alt="" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy"><span class="absolute top-3 left-3 text-[10px] font-mono uppercase bg-white/90 backdrop-blur px-2 py-1 rounded text-gray-600">Статьи</span></div><div class="p-5 flex flex-col gap-2"><h3 class="font-semibold text-base">Гид по типографике</h3><p class="text-sm text-gray-500">Как подобрать пару шрифтов и не сломать сетку.</p><div class="flex justify-between text-xs font-mono text-gray-400 mt-auto pt-3 border-t border-gray-100"><span>12 мин</span><span>1.4K</span></div></div></article>
+      <article class="card group border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow duration-300 bg-white" data-cat="service" data-pop="94" data-title="Конструктор форм"><div class="aspect-video overflow-hidden bg-gray-100 relative"><img src="https://picsum.photos/seed/card-forms/640/400" alt="" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy"><span class="absolute top-3 left-3 text-[10px] font-mono uppercase bg-blue-50 text-brand px-2 py-1 rounded">Сервисы</span></div><div class="p-5 flex flex-col gap-2"><h3 class="font-semibold text-base">Конструктор форм</h3><p class="text-sm text-gray-500">Соберите форму заявки за пять минут.</p><div class="flex justify-between text-xs font-mono text-gray-400 mt-auto pt-3 border-t border-gray-100"><span>Онлайн</span><span>3.1K</span></div></div></article>
+      <article class="card group border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow duration-300 bg-white" data-cat="data" data-pop="78" data-title="Дашборд метрик"><div class="aspect-video overflow-hidden bg-gray-100 relative"><img src="https://picsum.photos/seed/card-dashboard/640/400" alt="" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy"><span class="absolute top-3 left-3 text-[10px] font-mono uppercase bg-orange-50 text-orange-600 px-2 py-1 rounded">Данные</span></div><div class="p-5 flex flex-col gap-2"><h3 class="font-semibold text-base">Дашборд метрик</h3><p class="text-sm text-gray-500">Посещаемость, конверсии и воронки.</p><div class="flex justify-between text-xs font-mono text-gray-400 mt-auto pt-3 border-t border-gray-100"><span>Обновляется</span><span>921</span></div></div></article>
+      <article class="card group border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow duration-300 bg-white" data-cat="articles" data-pop="71" data-title="Сетка за 10 минут"><div class="aspect-video overflow-hidden bg-gray-100 relative"><img src="https://picsum.photos/seed/card-grid/640/400" alt="" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy"><span class="absolute top-3 left-3 text-[10px] font-mono uppercase bg-white/90 backdrop-blur px-2 py-1 rounded text-gray-600">Статьи</span></div><div class="p-5 flex flex-col gap-2"><h3 class="font-semibold text-base">Сетка за 10 минут</h3><p class="text-sm text-gray-500">12 колонок, отступы, контейнер.</p><div class="flex justify-between text-xs font-mono text-gray-400 mt-auto pt-3 border-t border-gray-100"><span>8 мин</span><span>980</span></div></div></article>
+      <article class="card group border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow duration-300 bg-white" data-cat="service" data-pop="88" data-title="Проверка контраста"><div class="aspect-video overflow-hidden bg-gray-100 relative"><img src="https://picsum.photos/seed/card-contrast/640/400" alt="" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy"><span class="absolute top-3 left-3 text-[10px] font-mono uppercase bg-blue-50 text-brand px-2 py-1 rounded">Сервисы</span></div><div class="p-5 flex flex-col gap-2"><h3 class="font-semibold text-base">Проверка контраста</h3><p class="text-sm text-gray-500">Вердикт WCAG AA/AAA мгновенно.</p><div class="flex justify-between text-xs font-mono text-gray-400 mt-auto pt-3 border-t border-gray-100"><span>Бесплатно</span><span>5.6K</span></div></div></article>
+      <article class="card group border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow duration-300 bg-white" data-cat="data" data-pop="64" data-title="Календарь релизов"><div class="aspect-video overflow-hidden bg-gray-100 relative"><img src="https://picsum.photos/seed/card-calendar/640/400" alt="" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy"><span class="absolute top-3 left-3 text-[10px] font-mono uppercase bg-orange-50 text-orange-600 px-2 py-1 rounded">Данные</span></div><div class="p-5 flex flex-col gap-2"><h3 class="font-semibold text-base">Календарь релизов</h3><p class="text-sm text-gray-500">Все версии фреймворка с датами.</p><div class="flex justify-between text-xs font-mono text-gray-400 mt-auto pt-3 border-t border-gray-100"><span>v3.0</span><span>24</span></div></div></article>
+      <article class="card group border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow duration-300 bg-white" data-cat="articles" data-pop="59" data-title="Цвет без хаоса"><div class="aspect-video overflow-hidden bg-gray-100 relative"><img src="https://picsum.photos/seed/card-color/640/400" alt="" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy"><span class="absolute top-3 left-3 text-[10px] font-mono uppercase bg-white/90 backdrop-blur px-2 py-1 rounded text-gray-600">Статьи</span></div><div class="p-5 flex flex-col gap-2"><h3 class="font-semibold text-base">Цвет без хаоса</h3><p class="text-sm text-gray-500">Правило 60/30/10.</p><div class="flex justify-between text-xs font-mono text-gray-400 mt-auto pt-3 border-t border-gray-100"><span>7 мин</span><span>760</span></div></div></article>
+      <article class="card group border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow duration-300 bg-white" data-cat="service" data-pop="82" data-title="Экспорт в код"><div class="aspect-video overflow-hidden bg-gray-100 relative"><img src="https://picsum.photos/seed/card-export/640/400" alt="" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy"><span class="absolute top-3 left-3 text-[10px] font-mono uppercase bg-blue-50 text-brand px-2 py-1 rounded">Сервисы</span></div><div class="p-5 flex flex-col gap-2"><h3 class="font-semibold text-base">Экспорт в код</h3><p class="text-sm text-gray-500">Выгрузка HTML + CSS одним кликом.</p><div class="flex justify-between text-xs font-mono text-gray-400 mt-auto pt-3 border-t border-gray-100"><span>HTML</span><span>2.2K</span></div></div></article>
+      <article class="card group border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow duration-300 bg-white" data-cat="data" data-pop="73" data-title="Прайс-лист API"><div class="aspect-video overflow-hidden bg-gray-100 relative"><img src="https://picsum.photos/seed/card-api/640/400" alt="" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy"><span class="absolute top-3 left-3 text-[10px] font-mono uppercase bg-orange-50 text-orange-600 px-2 py-1 rounded">Данные</span></div><div class="p-5 flex flex-col gap-2"><h3 class="font-semibold text-base">Прайс-лист API</h3><p class="text-sm text-gray-500">Таблица лимитов по эндпоинтам.</p><div class="flex justify-between text-xs font-mono text-gray-400 mt-auto pt-3 border-t border-gray-100"><span>JSON</span><span>v2.4</span></div></div></article>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 04. ФОРМЫ ================= -->
+<section id="s-forms" data-sec class="space-y-12">
+  <div class="rv"><p class="text-xs font-mono text-brand uppercase tracking-widest mb-2">Блоки 10–14</p><h2 class="text-3xl font-bold tracking-tight mb-2">Формы и UI-кит</h2><p class="text-gray-500 max-w-2xl">Вход, многошаговый сценарий, подписка, обратная связь и витрина контролов.</p></div>
+
+  <div class="grid md:grid-cols-2 gap-6 rv items-start">
+    <div>
+      <span class="text-xs font-mono text-gray-400 mb-3 block">10 · Вход / регистрация</span>
+      <div class="border border-gray-200 rounded-xl p-6" data-tabs>
+        <div class="flex gap-1 bg-gray-100 p-1 rounded-lg mb-6" role="tablist">
+          <button type="button" class="tab is-on flex-1 py-2 text-sm font-medium rounded-md transition" data-tab="lg">Вход</button>
+          <button type="button" class="tab flex-1 py-2 text-sm font-medium text-gray-500 rounded-md transition" data-tab="rg">Регистрация</button>
+        </div>
+        <form class="tab-panel is-on space-y-4" data-panel="lg">
+          <div class="field"><label class="block text-xs font-mono text-gray-500 uppercase mb-1.5">E-mail</label><input type="email" placeholder="you@example.com" class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition"></div>
+          <div class="field"><label class="block text-xs font-mono text-gray-500 uppercase mb-1.5">Пароль</label><input type="password" placeholder="••••••••" class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition"></div>
+          <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer"><input type="checkbox" checked class="rounded border-gray-300 text-brand focus:ring-brand/20"> Запомнить меня</label>
+          <button type="submit" class="w-full bg-gray-900 text-white py-2.5 rounded-lg font-medium hover:bg-gray-800 transition text-sm">Войти</button>
+          <p class="form-note text-xs font-mono text-gray-400 text-center mt-2"></p>
+        </form>
+        <form class="tab-panel space-y-4" data-panel="rg">
+          <div class="field"><label class="block text-xs font-mono text-gray-500 uppercase mb-1.5">Имя</label><input placeholder="Как к вам обращаться" class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition"></div>
+          <div class="field"><label class="block text-xs font-mono text-gray-500 uppercase mb-1.5">E-mail</label><input type="email" placeholder="you@example.com" class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition"></div>
+          <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer"><input type="checkbox" class="rounded border-gray-300 text-brand focus:ring-brand/20"> Принимаю условия</label>
+          <button type="submit" class="w-full bg-brand text-white py-2.5 rounded-lg font-medium hover:bg-blue-700 transition text-sm">Создать аккаунт</button>
+          <p class="form-note text-xs font-mono text-gray-400 text-center mt-2"></p>
+        </form>
+      </div>
+    </div>
+    <div>
+      <span class="text-xs font-mono text-gray-400 mb-3 block">11 · Многошаговая форма</span>
+      <div class="border border-gray-200 rounded-xl p-6" id="mstep">
+        <div class="flex justify-between text-xs font-mono text-gray-500 mb-2"><span>Заявка на проект</span><span id="msLabel">Шаг 1 / 3</span></div>
+        <div class="h-1.5 bg-gray-100 rounded-full mb-6 overflow-hidden"><div id="msFill" class="h-full bg-brand rounded-full transition-all duration-500" style="width:33%"></div></div>
+        <div class="ms-step space-y-4"><div class="field"><label class="block text-xs font-mono text-gray-500 uppercase mb-1.5">Название проекта</label><input id="m1" placeholder="Например: лендинг" class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition"></div><div class="field"><label class="block text-xs font-mono text-gray-500 uppercase mb-1.5">Бюджет, ₽</label><select id="m2" class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm bg-white"><option>До 100 000</option><option>100–300 000</option><option>300 000+</option></select></div></div>
+        <div class="ms-step space-y-4" hidden><div class="field"><label class="block text-xs font-mono text-gray-500 uppercase mb-1.5">Контактное лицо</label><input id="m3" placeholder="Имя и фамилия" class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition"></div><div class="field"><label class="block text-xs font-mono text-gray-500 uppercase mb-1.5">Телефон</label><input id="m4" type="tel" placeholder="+7 (___) ___-__-__" class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition"></div></div>
+        <div class="ms-step" hidden><div class="field"><label class="block text-xs font-mono text-gray-500 uppercase mb-1.5">Комментарий</label><textarea id="m5" placeholder="Пара слов о задаче…" rows="3" class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition"></textarea></div><label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer"><input type="checkbox" id="m6" class="rounded border-gray-300 text-brand focus:ring-brand/20"> Согласие на обработку данных</label></div>
+        <div class="ms-step" hidden><div class="bg-green-50 border border-green-200 text-green-800 rounded-lg p-4 text-sm font-medium">✓ Заявка собрана!</div></div>
+        <div class="flex gap-3 mt-6"><button type="button" id="msBack" disabled class="px-4 py-2.5 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition disabled:opacity-40 disabled:pointer-events-none">← Назад</button><button type="button" id="msNext" class="flex-1 px-4 py-2.5 text-sm font-medium bg-brand text-white rounded-lg hover:bg-blue-700 transition">Далее →</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rv">
+    <span class="text-xs font-mono text-gray-400 mb-3 block">12 · Элементы форм и контролы</span>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="border border-gray-200 rounded-xl p-6 space-y-4">
+        <div class="field"><label class="block text-xs font-mono text-gray-500 uppercase mb-1.5">Текстовое поле</label><input placeholder="Введите значение" class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition"></div>
+        <div class="field"><label class="block text-xs font-mono text-gray-500 uppercase mb-1.5">Выпадающий список</label><select class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition"><option>Вариант 1</option><option>Вариант 2</option></select></div>
+        <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer"><input type="radio" name="rr" checked class="text-brand focus:ring-brand/20"> Радио-вариант А</label>
+        <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer"><input type="radio" name="rr" class="text-brand focus:ring-brand/20"> Радио-вариант Б</label>
+      </div>
+      <div class="border border-gray-200 rounded-xl p-6 space-y-5">
+        <label class="flex items-center justify-between cursor-pointer"><span class="text-sm font-medium">Уведомления</span><div class="relative"><input type="checkbox" checked class="sr-only peer"><div class="w-10 h-5 bg-gray-200 peer-checked:bg-brand rounded-full transition"></div><div class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow peer-checked:translate-x-5 transition pointer-events-none"></div></div></label>
+        <label class="flex items-center justify-between cursor-pointer"><span class="text-sm font-medium">Тёмная тема</span><div class="relative"><input type="checkbox" class="sr-only peer"><div class="w-10 h-5 bg-gray-200 peer-checked:bg-brand rounded-full transition"></div><div class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow peer-checked:translate-x-5 transition pointer-events-none"></div></div></label>
+        <div class="flex flex-wrap gap-2 pt-2">
+          <button type="button" class="px-4 py-2 text-xs font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition">Кнопка</button>
+          <button type="button" class="px-4 py-2 text-xs font-medium bg-brand text-white rounded-lg hover:bg-blue-700 transition">Основная</button>
+          <button type="button" class="px-4 py-2 text-xs font-medium bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition">Акцент</button>
+          <button type="button" disabled class="px-4 py-2 text-xs font-medium border border-gray-200 rounded-lg opacity-40 cursor-not-allowed">Недоступна</button>
+          <span class="w-5 h-5 border-2 border-gray-300 border-t-brand rounded-full animate-spin self-center"></span>
+        </div>
+        <div class="flex items-center gap-3 pt-2"><div class="flex -space-x-2"><div class="w-8 h-8 rounded-full bg-brand text-white grid place-items-center text-[10px] font-bold ring-2 ring-white">АК</div><div class="w-8 h-8 rounded-full bg-orange-500 text-white grid place-items-center text-[10px] font-bold ring-2 ring-white">МД</div><div class="w-8 h-8 rounded-full bg-gray-900 text-white grid place-items-center text-[10px] font-bold ring-2 ring-white">+7</div></div><span class="text-xs font-mono text-gray-400">команда онлайн</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-6 rv items-start">
+    <div>
+      <span class="text-xs font-mono text-gray-400 mb-3 block">13 · Подписка на рассылку</span>
+      <div class="border border-gray-200 rounded-xl p-6">
+        <p class="text-sm font-medium mb-4">Раз в неделю: новые блоки и разборы.</p>
+        <form id="subsForm" class="flex gap-2"><input type="email" id="subsMail" placeholder="ваш@email.ru" class="flex-1 min-w-0 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition"><button type="submit" class="bg-gray-900 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-800 transition whitespace-nowrap">Подписаться</button></form>
+        <p class="form-note text-xs font-mono text-gray-400 mt-3"></p>
+      </div>
+    </div>
+    <div>
+      <span class="text-xs font-mono text-gray-400 mb-3 block">14 · Форма обратной связи</span>
+      <form id="cf" class="border border-gray-200 rounded-xl p-6 space-y-4" novalidate>
+        <div class="field" data-f><label class="block text-xs font-mono text-gray-500 uppercase mb-1.5">Имя *</label><input id="cf-n" class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition"><span class="f-err text-xs text-red-500 mt-1 hidden">Укажите имя</span></div>
+        <div class="field" data-f><label class="block text-xs font-mono text-gray-500 uppercase mb-1.5">E-mail *</label><input id="cf-e" type="email" class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition"><span class="f-err text-xs text-red-500 mt-1 hidden">Проверьте формат e-mail</span></div>
+        <div class="field" data-f><label class="block text-xs font-mono text-gray-500 uppercase mb-1.5">Сообщение *</label><textarea id="cf-m" rows="3" class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition"></textarea><span class="f-err text-xs text-red-500 mt-1 hidden">Напишите хотя бы пару слов</span></div>
+        <button type="submit" class="w-full bg-gray-900 text-white py-2.5 rounded-lg font-medium hover:bg-gray-800 transition text-sm">Отправить сообщение</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+</div>
+</main>
+
+<!-- ФУТЕР -->
+<footer class="bg-gray-900 text-gray-400 mt-24 border-t border-gray-800">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-10 py-16">
+      <div class="col-span-2 md:col-span-1">
+        <a href="index.html" class="flex items-center gap-2.5 font-bold text-lg text-white tracking-tight mb-4"><span class="w-8 h-8 bg-white text-gray-900 grid place-items-center text-sm font-mono rounded">БФ</span><span>Название сайта</span></a>
+        <p class="text-sm leading-relaxed mb-6 max-w-xs">Короткое описание компании или проекта. 1–2 предложения.</p>
+        <div class="flex gap-3"><a href="#" class="demo-link w-9 h-9 border border-gray-700 grid place-items-center text-xs font-mono hover:bg-brand hover:border-brand hover:text-white transition rounded" aria-label="VK">VK</a><a href="#" class="demo-link w-9 h-9 border border-gray-700 grid place-items-center text-xs font-mono hover:bg-brand hover:border-brand hover:text-white transition rounded" aria-label="TG">TG</a><a href="#" class="demo-link w-9 h-9 border border-gray-700 grid place-items-center text-xs font-mono hover:bg-brand hover:border-brand hover:text-white transition rounded" aria-label="YT">YT</a></div>
+      </div>
+      <div><h4 class="text-xs font-mono text-white uppercase tracking-widest mb-4">Навигация</h4><div class="space-y-3 text-sm"><a href="index.html" class="block hover:text-white transition font-bold text-white">Часть 1</a><a href="page2.html" class="block hover:text-white transition">Часть 2</a><a href="page3.html" class="block hover:text-white transition">Часть 3</a></div></div>
+      <div><h4 class="text-xs font-mono text-white uppercase tracking-widest mb-4">Колонка 2</h4><div class="space-y-3 text-sm"><a href="#s-search" class="block hover:text-white transition">Поиск</a><a href="#s-forms" class="block hover:text-white transition">Формы</a></div></div>
+      <div><h4 class="text-xs font-mono text-white uppercase tracking-widest mb-4">Контакты</h4><div class="space-y-3 text-sm font-medium"><a href="tel:+70000000000" class="block hover:text-white transition">+7 (000) 000-00-00</a><a href="mailto:mail@example.com" class="block hover:text-white transition">mail@example.com</a><span class="block">Город, улица, дом</span></div></div>
+    </div>
+    <div class="border-t border-gray-800 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono">
+      <span>© 2026 Название сайта. Все права защищены.</span>
+      <div class="flex items-center gap-6 flex-wrap justify-center"><a href="#" class="demo-link hover:text-white transition">Политика конфиденциальности</a><a href="#" class="demo-link hover:text-white transition">Пользовательское соглашение</a><button type="button" id="ftrUp" class="border border-gray-700 px-4 py-1.5 hover:bg-white hover:text-gray-900 hover:border-white transition rounded">Наверх ↑</button></div>
+    </div>
+  </div>
+</footer>
+
+<button type="button" id="toTop" class="fixed left-5 bottom-5 z-50 w-11 h-11 bg-white border border-gray-200 rounded-full grid place-items-center shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition opacity-0 pointer-events-none text-sm" aria-label="Наверх">↑</button>
+<div id="toasts" class="fixed top-20 right-5 z-[60] flex flex-col gap-3 pointer-events-none" aria-live="polite"></div>
+
+<div class="ovl fixed inset-0 z-[70] bg-black/40 backdrop-blur-sm grid place-items-center p-4 opacity-0 pointer-events-none transition-opacity duration-300" id="modal-cta" hidden>
+  <div class="mbox bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 transform translate-y-4 transition-transform duration-300" role="dialog" aria-modal="true">
+    <span class="text-xs font-mono text-brand uppercase tracking-wider block mb-4">Целевое действие</span>
+    <h3 class="text-2xl font-bold mb-2">Оставить заявку</h3>
+    <p class="text-sm text-gray-500 mb-6">Закрывается по Esc или клику на фон.</p>
+    <form id="modalForm" class="space-y-4"><div class="field"><label class="block text-xs font-mono text-gray-500 uppercase mb-1.5">Имя</label><input id="mf1" placeholder="Ваше имя" class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition"></div><div class="field"><label class="block text-xs font-mono text-gray-500 uppercase mb-1.5">Телефон или e-mail</label><input id="mf2" placeholder="+7 …" class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition"></div><button type="submit" class="w-full bg-brand text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition">Отправить</button></form>
+    <button type="button" data-close class="w-full mt-3 py-2 text-sm text-gray-500 hover:text-gray-900 transition font-medium">Отмена</button>
+  </div>
+</div>
+
+<style>.ovl.open{opacity:1;pointer-events:auto}.ovl.open .mbox{transform:none}.field.invalid input,.field.invalid textarea{border-color:#ef4444}.field.invalid .f-err{display:block}</style>
+<script>
+(function(){
+"use strict";
+const rm=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $=(s,c)=>(c||document).querySelector(s);
+const $$=(s,c)=>Array.from((c||document).querySelectorAll(s));
+$$('a[href="#"], a.demo-link').forEach(a=>a.addEventListener('click',e=>e.preventDefault()));
+addEventListener('scroll',()=>$('#hdr').classList.toggle('shadow-sm',scrollY>8),{passive:true});
+const burger=$('#burger'),mnav=$('#mnav');
+function closeMenu(){document.body.classList.remove('menu');mnav.classList.add('translate-x-full');mnav.classList.remove('translate-x-0');document.body.style.overflow='';burger.setAttribute('aria-expanded','false');}
+burger.addEventListener('click',()=>{const o=!document.body.classList.contains('menu');document.body.classList.toggle('menu',o);mnav.classList.toggle('translate-x-full',!o);mnav.classList.toggle('translate-x-0',o);document.body.style.overflow=o?'hidden':'';burger.setAttribute('aria-expanded',o);});
+$$('.mob-link').forEach(a=>a.addEventListener('click',closeMenu));
+addEventListener('keydown',e=>{if(e.key==='Escape'){closeMenu();$$('.ovl:not([hidden])').forEach(closeOvl);}});
+const scr=$('#scr');
+if(scr&&!rm){const t=scr.dataset.text,c='▚▞◆#АБВГДЕЖЗИКЛМНОПРСТУФ0123456789';let f=0,tot=Math.max(20,t.length+6);(function tick(){f++;const r=Math.floor(t.length*(f/tot));let o='';for(let i=0;i<t.length;i++)o+=i<r?t[i]:(t[i]===' '?' ':c[Math.random()*c.length|0]);scr.textContent=o;if(f<tot)setTimeout(tick,30);else scr.textContent=t;})();}
+function runCounter(el){if(el._d)return;el._d=true;const t=+el.dataset.count,s=el.dataset.suffix||'';if(rm){el.textContent=t+s;return;}const t0=performance.now();(function step(now){const p=Math.min((now-t0)/1200,1),e=1-Math.pow(1-p,3);el.textContent=Math.round(t*e)+s;if(p<1)requestAnimationFrame(step);})(t0);}
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');$$('[data-w]',e.target).forEach(b=>b.style.width=b.dataset.w+'%');$$('[data-count]',e.target).forEach(runCounter);io.unobserve(e.target);}}),{threshold:.1});
+$$('.rv').forEach(el=>io.observe(el));
+if(rm){$$('.rv').forEach(el=>el.classList.add('in'));$$('[data-w]').forEach(b=>b.style.width=b.dataset.w+'%');$$('[data-count]').forEach(runCounter);}
+$('#tocQ').addEventListener('input',e=>{const q=e.target.value.trim().toLowerCase();$$('#tocNav .toc-a').forEach(a=>a.hidden=q&&!a.textContent.toLowerCase().includes(q));});
+const spy=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)$$('#tocNav .toc-a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+e.target.id));}),{rootMargin:'-30% 0px -60% 0px'});
+$$('[data-sec]').forEach(s=>spy.observe(s));
+$$('[data-tabs]').forEach(root=>{$$('.tab',root).forEach(btn=>btn.addEventListener('click',()=>{$$('.tab',root).forEach(b=>{b.classList.remove('is-on');b.classList.add('text-gray-500')});$$('.tab-panel',root).forEach(p=>p.classList.remove('is-on'));btn.classList.add('is-on');btn.classList.remove('text-gray-500');$(`[data-panel="${btn.dataset.tab}"]`,root).classList.add('is-on');}));});
+const grid=$('#catGrid'),cards=$$('.card',grid),cnt=$('#cnt');let curF='all';
+function applyFilter(){let n=0;cards.forEach(c=>{const show=curF==='all'||c.dataset.cat===curF;c.classList.toggle('hidden',!show);if(show)n++;});cnt.textContent=n;}
+$$('#fbar .fbtn').forEach(b=>b.addEventListener('click',()=>{$$('#fbar .fbtn').forEach(x=>x.classList.remove('on'));b.classList.add('on');curF=b.dataset.f;applyFilter();}));
+$('#sortSel').addEventListener('change',e=>{const v=e.target.value;cards.sort((a,b)=>v==='az'?a.dataset.title.localeCompare(b.dataset.title,'ru'):v==='za'?b.dataset.title.localeCompare(a.dataset.title,'ru'):b.dataset.pop-a.dataset.pop);cards.forEach(c=>grid.appendChild(c));});
+const dq=$('#demoQ'),sug=$('#sugBox'),items=$$('.card').map(c=>({t:c.dataset.title,el:c}));
+function showSug(){const q=dq.value.trim().toLowerCase();if(!q){sug.hidden=true;return;}const m=items.filter(i=>i.t.toLowerCase().includes(q)).slice(0,6);sug.innerHTML=m.length?m.map(i=>`<button type="button" data-t="${i.t}" class="w-full flex justify-between items-center px-4 py-3 text-sm hover:bg-gray-50 border-b border-gray-100 last:border-0 transition">${i.t}<span class="text-xs font-mono text-gray-400">перейти</span></button>`).join(''):'<div class="px-4 py-3 text-sm text-gray-400">Ничего не найдено</div>';sug.hidden=false;$$('button[data-t]',sug).forEach(b=>b.addEventListener('click',()=>{const it=items.find(i=>i.t===b.dataset.t);curF='all';$$('#fbar .fbtn').forEach(x=>x.classList.toggle('on',x.dataset.f==='all'));applyFilter();sug.hidden=true;dq.value='';it.el.scrollIntoView({behavior:rm?'auto':'smooth',block:'center'});it.el.classList.add('ring-2','ring-brand');setTimeout(()=>it.el.classList.remove('ring-2','ring-brand'),1600);}));}
+dq.addEventListener('input',showSug);$('#demoGo').addEventListener('click',showSug);document.addEventListener('click',e=>{if(!e.target.closest('#s-search .rv'))sug.hidden=true;});
+const msSteps=$$('#mstep .ms-step');let st=0;
+function msDraw(){msSteps.forEach((p,i)=>p.hidden=i!==st);$('#msLabel').textContent=st<3?`Шаг ${st+1} / 3`:'Готово';$('#msFill').style.width=(st<3?(st+1)/3:1)*100+'%';$('#msBack').disabled=st===0;$('#msNext').style.display=st===3?'none':'';}
+$('#msNext').addEventListener('click',()=>{if(st<3){st++;msDraw();}});$('#msBack').addEventListener('click',()=>{if(st>0){st--;msDraw();}});
+function okEmail(v){return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);}
+$('#cf').addEventListener('submit',e=>{e.preventDefault();const f=e.target;let good=true;const chk=(id,test)=>{const w=$(id,f).closest('[data-f]');const okv=test($(id,f).value.trim());w.classList.toggle('invalid',!okv);if(!okv)good=false;};chk('#cf-n',v=>v.length>1);chk('#cf-e',okEmail);chk('#cf-m',v=>v.length>2);if(good){f.innerHTML='<div class="bg-green-50 border border-green-200 text-green-800 rounded-lg p-4 text-sm font-medium">✓ Сообщение отправлено!</div>';toast('t-ok','Успех','Сообщение отправлено');}});
+$('#subsForm').addEventListener('submit',e=>{e.preventDefault();const v=$('#subsMail').value.trim(),n=e.target.nextElementSibling;if(okEmail(v)){n.textContent='✓ Готово!';n.style.color='#0f8a6d';toast('t-ok','Успех','Вы подписаны');}else{n.textContent='✕ Проверьте формат';n.style.color='#d92d20';}});
+$$('[data-panel="lg"] [type=submit],[data-panel="rg"] [type=submit]').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();b.closest('form').querySelector('.form-note').textContent='✓ Демо: отправка отключена.';}));
+const toasts=$('#toasts');
+function toast(cls,title,msg){const t=document.createElement('div');t.className='pointer-events-auto flex items-center gap-3 bg-white border border-gray-200 rounded-xl shadow-xl px-4 py-3 text-sm font-medium';const c={'t-ok':'bg-green-500','t-info':'bg-brand','t-warn':'bg-yellow-500','t-err':'bg-red-500'};t.innerHTML=`<span class="w-2 h-2 rounded-full flex-none ${c[cls]||'bg-gray-400'}"></span><span>${msg}</span>`;toasts.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(20px)';t.style.transition='.3s';setTimeout(()=>t.remove(),350);},3200);while(toasts.children.length>4)toasts.firstChild.remove();}
+$$('[data-toast]').forEach(b=>b.addEventListener('click',()=>{const[c,t,m]=b.dataset.toast.split('|');toast(c,t,m);}));
+let lastFocus=null;
+function openOvl(sel){const o=$(sel);if(!o)return;lastFocus=document.activeElement;o.hidden=false;requestAnimationFrame(()=>o.classList.add('open'));document.body.style.overflow='hidden';}
+function closeOvl(o){o.classList.remove('open');document.body.style.overflow='';setTimeout(()=>o.hidden=true,300);if(lastFocus)lastFocus.focus();}
+$$('[data-open]').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();openOvl(b.dataset.open);}));
+$$('.ovl').forEach(o=>{o.addEventListener('click',e=>{if(e.target===o)closeOvl(o);});$$('[data-close]',o).forEach(b=>b.addEventListener('click',()=>closeOvl(o)));});
+$('#modalForm').addEventListener('submit',e=>{e.preventDefault();closeOvl($('#modal-cta'));toast('t-ok','Успех','Заявка принята!');});
+const toTop=$('#toTop');
+addEventListener('scroll',()=>{const s=scrollY>600;toTop.classList.toggle('opacity-0',!s);toTop.classList.toggle('pointer-events-none',!s);toTop.classList.toggle('opacity-100',s);},{passive:true});
+const goTop=e=>{e.preventDefault();scrollTo({top:0,behavior:rm?'auto':'smooth'});};
+toTop.addEventListener('click',goTop);$('#ftrUp').addEventListener('click',goTop);
+})();
+</script>
+</body>
+</html>
